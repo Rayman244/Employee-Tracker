@@ -2,10 +2,11 @@
   "name": "employee-tracker",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "inquirer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
+    
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,7 @@
   },
   "homepage": "https://github.com/Rayman244/Employee-Tracker#readme",
   "dependencies": {
+    "express": "^4.17.2",
     "inquirer": "^8.2.0",
     "mysql2": "^2.3.3"
   }
