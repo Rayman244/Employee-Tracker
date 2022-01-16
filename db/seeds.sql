@@ -1,21 +1,21 @@
-INSERT INTO departments (id,name)
+INSERT INTO departments (name)
 VALUES
-    (001,'Sales'),
-    (002,'Media'),
-    (003,'Finance'),
-    (004,'Fabrication');
+    ('Sales'),
+    ('Media'),
+    ('Finance'),
+    ('Fabrication');
 
-INSERT INTO role (id,name, department_id)
+INSERT INTO role (name,salary, department_id)
 VALUES
-    (001,'Salesperson',001),
-    (002,'Social Media',002),
-    (003,'Lawyer',003),
-    (004,'Welder',004);
+    ('Salesperson',25000, 1),
+    ('Social Media',50000,2),
+    ('Lawyer',100000,3),
+    ('Welder',75000,4);
 
-INSERT INTO employees (id, first_name,last_name, role_id)
+INSERT INTO employees (first_name,last_name, role_id)
 VALUES
-    (001,'Kevin','spades',001),
-    (002,'El','Woods',003),
-    (003,'Mike','Ross',004),
-    (004,'Ray','Hewitt',002),
-    (005,"John",'Jones',003);
+    ('Kevin','spades',1),
+    ('El','Woods',3),
+    ('Mike','Ross',4),
+    ('Ray','Hewitt',2),
+    ("John",'Jones',3);
