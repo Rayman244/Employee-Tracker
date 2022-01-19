@@ -12,10 +12,10 @@ VALUES
     ('Lawyer',100000,3),
     ('Welder',75000,4);
 
-INSERT INTO employees (first_name,last_name, role_id)
+INSERT INTO employees (first_name,last_name, role_id,manager)
 VALUES
-    ('Kevin','spades',1),
-    ('El','Woods',3),
-    ('Mike','Ross',4),
-    ('Ray','Hewitt',2),
-    ("John",'Jones',3);
+    ('Kevin','spades',1 ,"El"),
+    ('El','Woods',3,'Mike'),
+    ('Mike','Ross',4,'Corp'),
+    ('Ray','Hewitt',2,'Mike'),
+    ("John",'Jones',3, 'Mike');

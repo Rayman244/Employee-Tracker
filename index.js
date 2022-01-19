@@ -12,11 +12,10 @@ const startQ = () => {
           "View ALL Employees",
           "View Departments",
           "View Roles",
-          "View by Manager",
           "Add Employee",
           "Add Department",
           "Add Role",
-          "Update Role",
+          "Update Employee Role",
           "Exit",
         ],
       },
@@ -39,6 +38,12 @@ const startQ = () => {
         case "Add Role":
           addRole();
           break;
+        case "Add Employee":
+          addEmployee();
+          break;
+        case "Update Employee Role":
+          updateEmployeeRole();
+          break;
       }
     })
     .catch((error) => console.log(error));
@@ -46,28 +51,50 @@ const startQ = () => {
 
 const viewDepartment = () => {
   console.log("Viewing all departments");
-  db.query(`SELECt * FROM departments;`, (err, result) => {
+  db.query(`SELECT id AS ID,name as Name FROM departments;`, (err, result) => {
     console.table(result);
     startQ();
   });
 };
 const viewRoles = () => {
   console.log("Viewing all Roles");
-  db.query(`SELECt * FROM role;`, (err, result) => {
+  db.query(`
+  SELECT 
+  role.id as ID,
+  role.name as Title,
+  role.salary as Salary ,
+  departments.name AS Department
+  FROM role
+  LEFT JOIN departments ON role.department_id = departments.id;`, (err, result) => {
     console.table(result);
     startQ();
   });
 };
 const viewEmployees = () => {
   console.log("Viewing all Employees");
-  db.query(`SELECt * FROM employees;`, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.table(result);
-      startQ();
+  db.query(
+    `
+  SELECT 
+  employees.id AS ID,
+  employees.first_name AS FirstName,
+  employees.last_name AS LastName,
+  employees.manager AS Manager,
+  role.name AS Role, 
+  role.salary AS Salary,
+  departments.name AS Department
+  FROM employees
+  LEFT JOIN role ON employees.role_id = role.id
+  LEFT JOIN departments ON role.department_id = departments.id
+  `,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.table(result);
+        startQ();
+      }
     }
-  });
+  );
 };
 const addDepartment = () => {
   inquirer
@@ -88,8 +115,7 @@ const addDepartment = () => {
     ])
     .then((answers) => {
       const newDept = answers.deptName;
-
-      console.log("updating Department");
+      console.log(`Updating Departments`);
       const sql = `INSERT INTO departments (name) VALUES (?)`;
       const params = [newDept];
       db.query(sql, params, function (err, res) {
@@ -105,12 +131,11 @@ const addRole = () => {
   db.promise()
     .query("SELECT departments.name, departments.id FROM departments")
     .then(([rows]) => {
-    
+      // console.log(rows);
       let depts = rows.map(({ name, id }) => ({
         name: name,
         id: id,
       }));
-      console.log(depts);
       return inquirer
         .prompt([
           {
@@ -147,67 +172,140 @@ const addRole = () => {
           },
         ])
         .then(({ roleName, roleSalary, roleDpt }) => {
-            console.log("updating Roles");
+          console.log(roleDpt);
+          console.log("updating Roles");
           const sql = `INSERT INTO role (name,salary,department_id) VALUES (?,?,?)`;
-          const params = [roleName, roleSalary, roleDpt.id];
+          const params = [roleName, roleSalary, roleDpt];
           db.query(sql, params, function (err, res) {
             if (err) {
               console.log(err);
             }
             console.log(roleDpt);
             console.log(`
-        ================
-          SUCCESSFULLY added Role
-        =============================`);
+                           SUCCESSFULLY added Role`);
           });
           startQ();
-        }
-        );
+        });
     });
 };
 const addEmployee = () => {
-  inquirer
-    .prompt([
-      {
-        type: "input",
-        name: "empName",
-        message: "Enter a new employees name",
-        validate: (input) => {
-          if (input) {
-            return true;
-          } else {
-            console.log("Please enter a valad name");
-            return false;
-          }
-        },
-      },
-    ])
-    .then((storeDept) => {
-      const newDept = storeDept.deptName;
-
-      console.log("updating Department");
-      const sql = `INSERT INTO departments (name) VALUES (?)`;
-      const params = [newDept];
-      db.query(sql, params, function (err, res) {
-        if (err) {
-          console.log(err);
-        }
-        console.log(`
-        ================
-          SUCCESSFULLY added Department
-        =============================`);
-      });
-      startQ();
+  db.promise()
+  .query(
+    `
+SELECT employees.first_name, employees.id, role.id, role.name 
+FROM employees
+LEFT JOIN role ON employees.role_id = role.id
+`
+  )
+  .then(([rows]) => {
+    let employees = rows.map(({first_name, lastName}) => ({
+      name: first_name,
+      value: first_name,
+    }));
+    let roles = rows.map(({ id, name }) => ({
+      name: name,
+      value: id,
+    }));
+      return inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "firstName",
+            message: "Provide employee first name",
+            validate: (firstNameInput) => {
+              if (firstNameInput) {
+                return true;
+              } else {
+                console.log("Please enter valad first name");
+                return false;
+              }
+            },
+          },
+          {
+            type: "input",
+            name: "lastName",
+            message: "Provide employee last name",
+            validate: (lastNameInput) => {
+              if (lastNameInput) {
+                return true;
+              } else {
+                console.log("Please enter valad last name");
+              }
+            },
+          },
+          {
+            type: "list",
+            name: "roleSelect",
+            message: "Provide select a ROLE",
+            choices: roles,
+          },
+          {
+            type: "list",
+            name: "managerSelect",
+            message: "Provide select the manager of this employee",
+            choices: employees,
+          },
+        ])
+        .then(({ firstName, lastName, managerSelect, roleSelect }) => {
+          console.log("updating employees");
+          const sql = `INSERT INTO employees (first_name, last_name, manager, role_id) VALUES (?, ?, ?, ?)`;
+          const params = [firstName, lastName, managerSelect, roleSelect];
+          db.query(sql, params, function (err, res) {
+            if (err) {
+              console.log(err);
+            }
+            console.log(`Successfully added employee`);
+          });
+          startQ();
+        });
     });
-};
-// const addEmployee =() =>{
-//   db.query(``,(err,results)=>{
-//     if(err){
-//       console.log(err);
-//     }else{
-//       console.table(results);
-//       startQ()
-//     }
-//   })
-// }
+}
+const updateEmployeeRole = () => {
+  db
+    .promise()
+    .query(
+      `
+  SELECT employees.first_name, employees.id, role.id, role.name 
+  FROM employees
+  LEFT JOIN role ON employees.role_id = role.id
+  `
+    )
+    .then(([rows]) => {
+      let employees = rows.map(({first_name, id }) => ({
+        name: first_name,
+        value: id,
+      }));
+      let roles = rows.map(({ id, name }) => ({
+        name: name,
+        value: id,
+      }));
+      return inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "employeeList",
+            message: "Select an Employee",
+            choices: employees,
+          },
+          {
+            type: "list",
+            name: "roleList",
+            message: "Select Role",
+            choices: roles,
+          },
+        ])
+        .then(({ employeelist, rolelist }) => {
+          const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
+          const params = [employeelist, rolelist];
+          db.query(sql, params, function (err, res) {
+            if (err) {
+              console.log(err);
+            }
+            console.log(`Successfully updated employee`);
+          });
+          startQ();
+        });
+    });
+}
+
 startQ();
