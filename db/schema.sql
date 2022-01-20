@@ -12,6 +12,7 @@ CREATE TABLE role (
   department_id INT,
   FOREIGN KEY (department_id)
   REFERENCES departments(id)
+  ON DELETE SET NULL
 );
 
 CREATE TABLE employees (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -21,4 +22,5 @@ CREATE TABLE employees (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   manager VARCHAR(30),
   FOREIGN KEY (role_id)
   REFERENCES role(id)
+  ON DELETE SET NULL
 );
